@@ -2,7 +2,7 @@ import React from "react";
 import SpinningGold from "../assets/SpinningGold.svg";
 import OuterRing from "../assets/OuterRing.svg";
 import Millionaire from "../assets/millionaire.svg";
-import SparkleBackground from "./SparkleBackground";
+import SparkleBackground from "../components/SparkleBackground";
 
 const HomeScreen = () => {
   return (
