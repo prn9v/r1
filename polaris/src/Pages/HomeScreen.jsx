@@ -1,10 +1,13 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import SpinningGold from "../assets/SpinningGold.svg";
 import OuterRing from "../assets/OuterRing.svg";
 import Millionaire from "../assets/millionaire.svg";
 import SparkleBackground from "../components/SparkleBackground";
 
 const HomeScreen = () => {
+  const navigate = useNavigate();
+
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-blue-800 to-black flex flex-col items-center justify-center relative overflow-hidden">
       <SparkleBackground />
@@ -17,11 +20,7 @@ const HomeScreen = () => {
             alt="Spinning Gold"
             className="w-[250px] absolute animate-spin-slow"
           />
-          <img
-            src={Millionaire}
-            alt="Millionaire"
-            className="absolute"
-          />
+          <img src={Millionaire} alt="Millionaire" className="absolute" />
         </div>
 
         <button
@@ -30,7 +29,7 @@ const HomeScreen = () => {
             clipPath: "polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%)",
             width: "200px",
           }}
-          onClick={() => alert('Game Started!')}
+          onClick={() => navigate('/quiz')}
         >
           Start Game
         </button>
