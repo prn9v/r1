@@ -34,8 +34,8 @@ const Timer = () => {
       </div>
 
       {/* Display the formatted time */}
-      <div className="timer-display text-white text-center mt-4">
-        <p className="text-xl">{formatTime(seconds)}</p>
+      <div className="timer-display text-white text-center">
+        <p className="text-l">{formatTime(seconds)}</p>
       </div>
     </div>
   );
