@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import "./Quiz.css";
-import SparkleBackground from "./SparkleBackground";
+import "../components/Quiz.css";
+import SparkleBackground from "../components/SparkleBackground";
 
 const ques = [
   {
@@ -93,7 +93,7 @@ const Quiz = () => {
         </>
       ) : (
         <div>
-          <h1>Quiz Completed!</h1>
+          <h1 class="mt-5 text-3xl text-yellow-400">Quiz Completed!</h1>
         </div>
       )}
     </div>
