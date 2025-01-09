@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import SparkleBackground from "../components/SparkleBackground";
 import Timer from "../components/Timer";
 import { getDatabase, ref, get, update } from "firebase/database";

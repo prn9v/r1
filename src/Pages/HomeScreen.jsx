@@ -1,20 +1,16 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import SpinningGold from "../assets/SpinningGold.svg";
 import OuterRing from "../assets/OuterRing.svg";
 import Millionaire from "../assets/millionaire.svg";
 import SparkleBackground from "../components/SparkleBackground";
-import { useFirebase } from "../firebase";
 
 const HomeScreen = () => {
   const navigate = useNavigate();
-  const firebase=useFirebase();
-  console.log(firebase.isLogin);
-  console.log(firebase.user.uid)
+
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-blue-800 to-black flex flex-col items-center justify-center relative overflow-hidden">
       <SparkleBackground />
-    
+
       <div className="relative z-10 flex flex-col items-center">
         <div className="relative flex items-center justify-center">
           <img src={OuterRing} alt="Outer Ring" className="w-[500px]" />
@@ -36,7 +32,6 @@ const HomeScreen = () => {
         >
           Start Game
         </button>
-        <button onClick={e=>{firebase.signOutUser()}}>Logout</button>
       </div>
     </div>
   );

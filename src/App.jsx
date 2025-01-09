@@ -20,7 +20,6 @@ const App = () => {
       <Routes>
         <Route path="/" element={<ProtectedRoute><HomeScreen/></ProtectedRoute>} />
         <Route path="/login" element={<LoginPage/>} />
-
         <Route path="/quiz" element={<Quiz/>}/>
       </Routes>
     </Router>
