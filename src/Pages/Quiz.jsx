@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import SparkleBackground from "../components/SparkleBackground";
 import Timer from "../components/Timer";
 import { getDatabase, ref, get, update } from "firebase/database";
@@ -14,7 +14,7 @@ const Quiz = () => {
   const [seconds, setSeconds] = useState(30);
   const [confirmSelection, setConfirmSelection] = useState(false);
   const [toggleLeaderboard, setToggleLeaderboard] = useState(false);
-  const timerRef = React.useRef(null);
+  const timerRef = useRef(null);
 
   if (timerRef.current === null && !isSubmitted) {
     timerRef.current = setInterval(() => {
@@ -163,11 +163,11 @@ const Quiz = () => {
                   </p>
                 </div>
 
-                <ul className="list-none p-0 grid grid-cols-2 gap-4 justify-center items-center cursor-none">
+                <ul className="list-none p-0 grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center items-center cursor-none">
                   {questions[currentQues].options.map((option) => (
                     <li
                       key={option}
-                      className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-transform duration-200 transform hover:scale-105 shadow-md w-56 ${selectedOption === option
+                      className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-transform duration-200 transform hover:scale-105 shadow-md w-full sm:w-56 mx-auto ${selectedOption === option
                         ? option === questions[currentQues].correctAnswer
                           ? highlight === "green"
                             ? "bg-green-500 border-green-700"
