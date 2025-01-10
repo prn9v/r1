@@ -5,9 +5,9 @@ import App from './App.jsx'
 import { FirebaseProvider } from './firebase.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <FirebaseProvider>
+  // <StrictMode>
+  <FirebaseProvider>
     <App />
-    </FirebaseProvider>
-  </StrictMode>,
+  </FirebaseProvider>
+  // </StrictMode>,
 )
