@@ -1,27 +1,23 @@
-import { useState, useEffect, useRef } from "react";
-import SparkleBackground from "../components/SparkleBackground";
-import Timer from "../components/Timer";
+
+
+import React, { useState, useEffect, useRef } from "react";
 import { getDatabase, ref, get, update } from "firebase/database";
 import { useFirebase } from "../firebase";
+import Timer from "../components/Timer";
+import Leaderboard from "../components/LeaderBoard";
+import SparkleBackground from "../components/SparkleBackground";
 
 const Quiz = () => {
   const [questions, setQuestions] = useState([]);
   const [currentQues, setCurrentQues] = useState(0);
   const [selectedOption, setSelectedOption] = useState("");
+  const [isSubmitted, setQuizCompleted] = useState(false);
   const [highlight, setHighlight] = useState(null);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [userId, setUserId] = useState(null);
   const [seconds, setSeconds] = useState(30);
-  const [confirmSelection, setConfirmSelection] = useState(false);
-  const [toggleLeaderboard, setToggleLeaderboard] = useState(false);
+  const [userId, setUserId] = useState(null);
   const timerRef = useRef(null);
-
-  if (timerRef.current === null && !isSubmitted) {
-    timerRef.current = setInterval(() => {
-      setSeconds((prevSeconds) => prevSeconds > 0 ? prevSeconds - 1 : 0);
-    }, 1000);
-  }
-  if (isSubmitted) clearInterval(timerRef.current);
+  const [phase, setPhase] = useState("question");
+  const [answerSubmitted, setAnswerSubmitted] = useState(false);
 
   const firebase = useFirebase();
 
@@ -57,9 +53,60 @@ const Quiz = () => {
     fetchQuestions();
   }, []);
 
+  useEffect(() => {
+    if (seconds > 0) {
+      timerRef.current = setInterval(() => {
+        setSeconds((prev) => prev - 1);
+      }, 1000);
+    } else {
+      handleTimeUp();
+    }
+
+    return () => clearInterval(timerRef.current);
+  }, [seconds, phase]);
+
+  const handleTimeUp = () => {
+    if (phase === "question") {
+      if (!answerSubmitted) {
+        handleSubmit();
+      }
+      setPhase("answer");
+      setSeconds(5);
+    } else if (phase === "answer") {
+      setPhase("leaderboard");
+      setSeconds(5);
+    } else if (phase === "leaderboard") {
+      if (currentQues + 1 >= questions.length) {
+        setQuizCompleted(true);
+      } else {
+        goToNextQuestion();
+      }
+    }
+  };
+
+  const goToNextQuestion = () => {
+    setHighlight(null);
+    setSelectedOption("");
+    setCurrentQues((prev) => prev + 1);
+    setSeconds(30);
+    setPhase("question");
+    setAnswerSubmitted(false);
+  };
+
   const handleOptionSelect = (option) => {
-    if (!confirmSelection)
+    if (phase === "question" && !answerSubmitted) {
       setSelectedOption(option);
+    }
+  };
+
+  const handleSubmit = () => {
+    setAnswerSubmitted(true);
+    if (selectedOption === questions[currentQues]?.correctAnswer) {
+      setHighlight("green");
+      updateScore();
+    } else {
+      setHighlight("red");
+    }
   };
 
   const updateScore = async () => {
@@ -91,111 +138,101 @@ const Quiz = () => {
     }
   };
 
-  if (seconds <= 0) {
-    if (selectedOption === questions[currentQues].correctAnswer) {
-      setHighlight("green");
-      (async () => await updateScore())();
-    } else {
-      setHighlight("red");
-    }
-    if (currentQues + 1 >= questions.length) {
-      setSeconds(5);
-      setTimeout(() => {
-        setIsSubmitted(true);
-      }, 5000)
-    } else {
-      setTimeout(() => {
-        setToggleLeaderboard(true);
-      }, 5000)
+  const renderQuestion = () => (
+    <>
+      <div className="question-container bg-blue-900 items-center mb-5 justify-center border-2 border-yellow-400 rounded-lg">
+        <h1 className="mt-6 text-3xl text-yellow-400">
+          Question {currentQues + 1}
+        </h1>
+        <p className="mb-6 text-2xl text-white">
+          {questions[currentQues]?.ques}
+        </p>
+      </div>
+      <ul className="list-none p-0 grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center items-center">
+        {questions[currentQues]?.options.map((option) => (
+          <li
+            key={option}
+            className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-transform duration-200 transform hover:scale-105 shadow-md w-full sm:w-56 mx-auto ${
+              selectedOption === option
+                ? "bg-blue-700 border-yellow-400"
+                : "bg-blue-900 border-yellow-400"
+            }`}
+          >
+            <button
+              type="button"
+              className="w-full transform p-2 text-center rounded-lg transition duration-300 focus:outline-none active:bg-blue-700 hover:bg-blue-800"
+              onClick={() => handleOptionSelect(option)}
+              disabled={answerSubmitted}
+            >
+              {option}
+            </button>
+          </li>
+        ))}
+      </ul>
+      {!answerSubmitted && (
+        <button
+          className="bg-yellow-400 text-black text-lg px-5 py-2.5 rounded mt-5 transition duration-300 hover:enabled:bg-yellow-500 hover:enabled:shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
+          onClick={handleSubmit}
+          disabled={!selectedOption}
+        >
+          Submit
+        </button>
+      )}
+    </>
+  );
 
-      setTimeout(() => {
-        setHighlight(null);
-        setSelectedOption("");
-        setCurrentQues((prev) => prev + 1);
-        setToggleLeaderboard(false);
-        setConfirmSelection(false);
-      }, 10000)
-      setSeconds(40); // 40 = 30 per Q + 5 sec solution + 5 sec leaderboard
-    }
-    // console.log(currentQues)
-  }
-
-  const handleSubmit = function () {
-    setConfirmSelection(true);
-  }
-
-  // const handleSubmit = async () => {
-  //   if (selectedOption === questions[currentQues].correctAnswer) {
-  //     setHighlight("green");
-  //     await updateScore();
-  //   } else {
-  //     setHighlight("red");
-  //   }
-
-  //   setTimeout(() => {
-  //     if (currentQues < questions.length - 1) {
-  //       setHighlight(null);
-  //       setSelectedOption("");
-  //       setCurrentQues((prev) => prev + 1);
-  //       setSeconds(30);
-  //     } else {
-  //       setIsSubmitted(true);
-  //     }
-  //   }, 10000);
-  // };
+  const renderAnswer = () => (
+    <>
+      <div className="question-container bg-blue-900 items-center mb-5 justify-center border-2 border-yellow-400 rounded-lg">
+        <h1 className="mt-6 text-3xl text-yellow-400">
+          Question {currentQues + 1}
+        </h1>
+        <p className="mb-6 text-2xl text-white">
+          {questions[currentQues]?.ques}
+        </p>
+      </div>
+      <ul className="list-none p-0 grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center items-center">
+        {questions[currentQues]?.options.map((option) => (
+          <li
+            key={option}
+            className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-transform duration-200 transform hover:scale-105 shadow-md w-full sm:w-56 mx-auto ${
+              option === questions[currentQues]?.correctAnswer
+                ? "bg-green-500 border-green-700"
+                : option === selectedOption
+                ? "bg-red-500 border-red-700"
+                : "bg-blue-900 border-yellow-400"
+            }`}
+          >
+            <button
+              type="button"
+              className="w-full transform p-2 text-center rounded-lg transition duration-300 focus:outline-none active:bg-blue-700 hover:bg-blue-800"
+              disabled
+            >
+              {option}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 
   return (
     <div className="h-screen w-screen bg-gradient-to-b from-blue-800 to-black flex flex-col items-center justify-center relative overflow-hidden">
       <SparkleBackground />
-
       <div className="quiz-container">
         <div className="quiz-content relative text-center p-5 max-w-lg mx-auto">
           {!isSubmitted ? (
             questions.length > 0 ? (
               <>
                 <Timer seconds={seconds} />
-                <div className="question-container bg-blue-900 items-center mb-5 justify-center border-2 border-yellow-400 rounded-lg cursor-none">
-                  <h1 className="mt-6 text-3xl text-yellow-400">
-                    Question {currentQues + 1}
-                  </h1>
-                  <p className="mb-6 text-2xl text-white">
-                    {questions[currentQues].ques}
-                  </p>
-                </div>
-
-                <ul className="list-none p-0 grid grid-cols-1 sm:grid-cols-2 gap-4 justify-center items-center cursor-none">
-                  {questions[currentQues].options.map((option) => (
-                    <li
-                      key={option}
-                      className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-transform duration-200 transform hover:scale-105 shadow-md w-full sm:w-56 mx-auto ${selectedOption === option
-                        ? option === questions[currentQues].correctAnswer
-                          ? highlight === "green"
-                            ? "bg-green-500 border-green-700"
-                            : ""
-                          : highlight === "red"
-                            ? "bg-red-500 border-red-700"
-                            : ""
-                        : "bg-blue-900 border-yellow-400"
-                        }`}
-                    >
-                      <button
-                        type="button"
-                        className="w-full transform p-2 text-center rounded-lg transition duration-300 focus:outline-none active:bg-blue-700 hover:bg-blue-800"
-                        onClick={() => handleOptionSelect(option)}
-                      >
-                        {option}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                <button
-                  className="bg-yellow-400 text-black text-lg px-5 py-2.5 rounded mt-5 transition duration-300 hover:enabled:bg-yellow-500 hover:enabled:shadow-lg disabled:bg-gray-600 disabled:cursor-not-allowed"
-                  onClick={handleSubmit} // submission is based on time, here just set button to "submitted" and disable ability to switch selected option
-                  disabled={!selectedOption}
-                >
-                  {confirmSelection ? "Submitted" : "Submit"}
-                </button>
+                {phase === "question" && renderQuestion()}
+                {phase === "answer" && renderAnswer()}
+                {phase === "leaderboard" && (
+                  <div className="leaderboard-container bg-blue-900 items-center mb-5 justify-center border-2 border-yellow-400 rounded-lg p-4">
+                    <h2 className="text-2xl text-yellow-400 mb-4">Leaderboard</h2>
+                    <Leaderboard />
+                  </div>
+                )}
               </>
             ) : (
               <h1 className="text-2xl text-white">Loading questions...</h1>
@@ -212,3 +249,7 @@ const Quiz = () => {
 };
 
 export default Quiz;
+
+
+
+
